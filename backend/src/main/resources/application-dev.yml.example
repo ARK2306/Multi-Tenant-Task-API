@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/multitenant_db
+    username: postgres
+    password: your_password_here
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: your_jwt_secret_here
+    expiration: 86400000
