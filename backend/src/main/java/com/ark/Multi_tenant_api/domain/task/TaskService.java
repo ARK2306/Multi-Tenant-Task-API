@@ -1,5 +1,6 @@
 package com.ark.Multi_tenant_api.domain.task;
 
+import com.ark.Multi_tenant_api.config.MetricsService;
 import com.ark.Multi_tenant_api.domain.project.Project;
 import com.ark.Multi_tenant_api.domain.project.ProjectRepository;
 import com.ark.Multi_tenant_api.domain.task.dto.TaskRequest;
@@ -26,6 +27,7 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final TaskMapper taskMapper;
+    private final MetricsService metricsService;
 
     public Page<TaskResponse> getTasks(UUID projectId, Pageable pageable) {
         UUID orgId = UUID.fromString(TenantContext.getCurrentOrgId());
@@ -58,7 +60,9 @@ public class TaskService {
             task.setAssignee(assignee);
         }
 
+        metricsService.recordTaskCreated();
         return taskMapper.toResponse(taskRepository.save(task));
+
     }
 
     @Transactional
@@ -79,6 +83,9 @@ public class TaskService {
         }
 
         task.setStatus(newStatus);
+        if (newStatus == TaskStatus.DONE) {
+            metricsService.recordTaskCompleted(task.getStartedAt());
+        }
         return taskMapper.toResponse(taskRepository.save(task));
     }
 
