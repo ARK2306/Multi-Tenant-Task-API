@@ -1,8 +1,10 @@
 package com.ark.Multi_tenant_api.domain.project;
 
+import com.ark.Multi_tenant_api.domain.comment.CommentRepository;
 import com.ark.Multi_tenant_api.domain.organization.Organization;
 import com.ark.Multi_tenant_api.domain.project.dto.ProjectRequest;
 import com.ark.Multi_tenant_api.domain.project.dto.ProjectResponse;
+import com.ark.Multi_tenant_api.domain.task.TaskRepository;
 import com.ark.Multi_tenant_api.exception.ResourceNotFoundException;
 import com.ark.Multi_tenant_api.exception.UnauthorizedAccessException;
 import com.ark.Multi_tenant_api.tenant.TenantContext;
@@ -20,6 +22,8 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
+    private final CommentRepository commentRepository;
+    private final TaskRepository taskRepository;
 
     public Page<ProjectResponse> getProjects(Pageable pageable) {
         UUID orgId = UUID.fromString(TenantContext.getCurrentOrgId());
@@ -68,6 +72,8 @@ public class ProjectService {
             throw new UnauthorizedAccessException("Unauthorized");
         }
 
+        commentRepository.deleteAllByTaskProjectId(projectId);
+        taskRepository.deleteAllByProjectId(projectId);
         projectRepository.delete(project);
     }
 }

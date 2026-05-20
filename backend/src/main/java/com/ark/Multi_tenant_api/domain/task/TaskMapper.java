@@ -7,9 +7,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface TaskMapper {
 
-    @Mapping(target = "assigneeId",source = "assignee.id")
-    @Mapping(target = "projectId",source = "project.id")
-    public TaskResponse toResponse(Task task);
-
+    @Mapping(target = "assigneeId", source = "assignee.id")
+    @Mapping(target = "assigneeEmail", source = "assignee.email")
+    @Mapping(target = "projectId", source = "project.id")
+    @Mapping(target = "lastComment", ignore = true)
+    TaskResponse toResponse(Task task);
 
 }

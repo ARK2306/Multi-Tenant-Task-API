@@ -42,4 +42,9 @@ public class TaskController {
                                    @Valid @RequestBody TaskRequest request) {
         return taskService.updateTask(id, request);
     }
+    @DeleteMapping("/tasks/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTask(@PathVariable UUID id) {
+        taskService.deleteTask(id);
+    }
 }

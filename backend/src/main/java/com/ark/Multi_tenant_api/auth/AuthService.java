@@ -46,7 +46,8 @@ public class AuthService {
                 user.getRole().name()
         );
 
-        return new AuthResponse(token);
+        return new AuthResponse(token, user.getId().toString(), user.getEmail(),
+                user.getRole().name(), organization.getName());
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -63,7 +64,8 @@ public class AuthService {
                 user.getRole().name()
         );
 
-        return new AuthResponse(token);
+        return new AuthResponse(token, user.getId().toString(), user.getEmail(),
+                user.getRole().name(), user.getOrganization().getName());
     }
 
     @Transactional
@@ -89,6 +91,7 @@ public class AuthService {
                 user.getRole().name()
         );
 
-        return new AuthResponse(token);
+        return new AuthResponse(token, user.getId().toString(), user.getEmail(),
+                user.getRole().name(), organization.getName());
     }
 }

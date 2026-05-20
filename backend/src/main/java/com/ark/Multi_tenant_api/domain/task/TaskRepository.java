@@ -8,5 +8,5 @@ import java.util.UUID;
 
 public interface TaskRepository extends JpaRepository<Task, UUID> {
     Page<Task> findAllByProjectIdAndOrganizationId(UUID projectId, UUID organizationId, Pageable pageable);
-
+    void deleteAllByProjectId(UUID projectId);
 }

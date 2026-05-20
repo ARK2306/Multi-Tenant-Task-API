@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,6 +25,13 @@ public class CommentService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final CommentMapper commentMapper;
+
+    public List<CommentResponse> getCommentsByTask(UUID taskId) {
+        return commentRepository.findAllByTaskId(taskId)
+                .stream()
+                .map(commentMapper::toResponse)
+                .toList();
+    }
 
     @Transactional
     public CommentResponse createComment(UUID taskId, CommentRequest request, UUID userId) {

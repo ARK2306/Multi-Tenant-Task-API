@@ -1,8 +1,10 @@
 package com.ark.Multi_tenant_api.domain.task;
 
 import com.ark.Multi_tenant_api.config.MetricsService;
+import com.ark.Multi_tenant_api.domain.comment.CommentRepository;
 import com.ark.Multi_tenant_api.domain.project.Project;
 import com.ark.Multi_tenant_api.domain.project.ProjectRepository;
+import com.ark.Multi_tenant_api.domain.task.dto.LastCommentDto;
 import com.ark.Multi_tenant_api.domain.task.dto.TaskRequest;
 import com.ark.Multi_tenant_api.domain.task.dto.TaskResponse;
 import com.ark.Multi_tenant_api.domain.user.User;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,13 +29,21 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
     private final TaskMapper taskMapper;
     private final MetricsService metricsService;
 
     public Page<TaskResponse> getTasks(UUID projectId, Pageable pageable) {
         UUID orgId = UUID.fromString(TenantContext.getCurrentOrgId());
         return taskRepository.findAllByProjectIdAndOrganizationId(projectId, orgId, pageable)
-                .map(taskMapper::toResponse);
+                .map(task -> {
+                    TaskResponse response = taskMapper.toResponse(task);
+                    commentRepository.findTopByTaskIdOrderByCreatedAtDesc(task.getId())
+                            .ifPresent(c -> response.setLastComment(
+                                    new LastCommentDto(c.getContent(), c.getAuthor().getEmail(), c.getCreatedAt())
+                            ));
+                    return response;
+                });
     }
 
     @Transactional
@@ -49,7 +60,8 @@ public class TaskService {
         Task task = new Task();
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
-        task.setPriority(request.getPriority());
+        if (request.getPriority() != null) task.setPriority(request.getPriority());
+        if (request.getStatus() != null) task.setStatus(request.getStatus());
         task.setDueDate(request.getDueDate());
         task.setProject(project);
         task.setOrganization(project.getOrganization());
@@ -113,4 +125,17 @@ public class TaskService {
 
         return taskMapper.toResponse(taskRepository.save(task));
     }
+
+    @Transactional
+    public void deleteTask(UUID taskId) {
+        UUID orgId = UUID.fromString(TenantContext.getCurrentOrgId());
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+        if (!task.getOrganization().getId().equals(orgId)) {
+            throw new UnauthorizedAccessException("Task does not belong to your organization");
+        }
+        commentRepository.deleteAll(commentRepository.findAllByTaskId(taskId));
+        taskRepository.delete(task);
+    }
+
 }
