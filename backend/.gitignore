@@ -63,4 +63,3 @@ docker-compose.override.yml
 
 # Spring profiles
 application-dev.yml
-application-prod.yml
