@@ -49,8 +49,6 @@ target/
 .env
 *.env
 
-# Spring
-application-prod.yml
 
 # OS
 .DS_Store
